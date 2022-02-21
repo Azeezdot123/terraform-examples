@@ -1,24 +1,27 @@
-
-
-
-# creating a openssh key pair
-resource "tls_private_key" "ubuntu_key" {
-    algorithm = "RSA"
-    rsa_bits = 4096
-}
-resource "aws_key_pair" "ubuntu_key" {
-  key_name = "ubuntu_key_pair"
-  public_key = tls_private_key.ubuntu_key.public_key_openssh
-  
-}
-# saving the key pair to a local file
-resource "local_file" "ssh_key" {
-
-  filename = "${aws_key_pair.ubuntu_key.key_name}.pem"
-  content = tls_private_key.ubuntu_key.private_key_pem
+# Create an IAM User
+resource "aws_iam_user" "admin-user" {
+  name = "lucy"
+  tags = {
+    description = "The technical leader of team B"
+  }
 }
 
-# output "just_test" {
-#     value = local_file.ubuntu_key.content
-#     sensitive = false
-# }
+# Create an password for the IAM User
+resource "aws_iam_user_login_profile" "admin-user"{
+    user = aws_iam_user.admin-user.name
+    pgp_key = "keybase:headofstate"
+    password_reset_required = true
+}
+output "password" {
+  value = aws_iam_user_login_profile.admin-user.encrypted_password
+}
+
+# create an IAM policy
+resource "aws_iam_policy" "AdminUsers" {
+    name = "AdminUsers"
+    policy = file("iam_policy.json")
+}
+resource "aws_iam_user_policy_attachment" "lucy-admin" {
+    user = aws_iam_user.admin-user.name
+    policy_arn = aws_iam_policy.AdminUsers.arn
+}

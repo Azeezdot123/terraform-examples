@@ -1,10 +1,10 @@
 # provider variable
 variable "access_key_id" {
-    type = string
+  type = string
 }
 variable "secret_access_key" {
-    type = string
+  type = string
 }
 variable "region" {
-    type = string
+  type = string
 }
